@@ -28,7 +28,7 @@ function exportJsonToFile() {
   const json = JSON.stringify(result, null, 2);
 
   // 保存先フォルダ
-  const folderId = "YOUR_FOLDER_ID"; // ←置き換え
+  const folderId = "フォルダID"; // ←置き換え
   const folder = DriveApp.getFolderById(folderId);
 
   // ファイル名
@@ -39,4 +39,53 @@ function exportJsonToFile() {
   folder.createFile(blob);
 
   Logger.log("JSON を書き出しました: " + fileName);
+}
+
+function setNestedValue(obj, key, value) {
+  if (!key) return;
+  const keys = key.split(".");
+  let current = obj;
+
+  keys.forEach((k, idx) => {
+    const isLast = idx === keys.length - 1;
+    const isArrayIndex = !isNaN(k); // "0", "1", ... のように数値なら配列とみなす
+
+    if (isLast) {
+      // 最後のキーに値を代入する
+      if (isArrayIndex) {
+        // 配列のインデックス
+        const index = parseInt(k, 10);
+        if (!Array.isArray(current)) {
+          // current がまだ配列でなければ配列にする
+          current = [];
+        }
+        current[index] = value;
+      } else {
+        // 通常のオブジェクトのキー
+        current[k] = value;
+      }
+    } else {
+      // 途中のキーならオブジェクト/配列を掘り下げる
+      const nextKey = keys[idx + 1];
+      const nextIsArray = !isNaN(nextKey);
+
+      if (isArrayIndex) {
+        // 今のキーが配列インデックスの場合
+        const index = parseInt(k, 10);
+        if (!Array.isArray(current)) {
+          current = [];
+        }
+        if (!current[index]) {
+          current[index] = nextIsArray ? [] : {};
+        }
+        current = current[index];
+      } else {
+        // オブジェクトのキー
+        if (!current[k]) {
+          current[k] = nextIsArray ? [] : {};
+        }
+        current = current[k];
+      }
+    }
+  });
 }
