@@ -1,132 +1,42 @@
-/**
- * スプレッドシートの内容を JSON に変換し、
- * Google Drive 上にテキストファイルとして出力するサンプル
- * 
- * シート構造の例:
- * --------------------------------------------------
- * | name   | age | address.city | address.zip | skills.0 | skills.1 |
- * |--------|-----|--------------|-------------|----------|----------|
- * | Taro   | 20  | Tokyo        | 100-0001    | C#       | Unity    |
- * | Hanako | 25  | Osaka        | 530-0001    | Python   | GAS      |
- * --------------------------------------------------
- * 
- * 出力される JSON の例:
- * [
- *   {
- *     "name": "Taro",
- *     "age": 20,
- *     "address": { "city": "Tokyo", "zip": "100-0001" },
- *     "skills": ["C#", "Unity"]
- *   },
- *   {
- *     "name": "Hanako",
- *     "age": 25,
- *     "address": { "city": "Osaka", "zip": "530-0001" },
- *     "skills": ["Python", "GAS"]
- *   }
- * ]
- */
 function exportJsonToFile() {
-  // アクティブなスプレッドシートを取得
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  // ここはシート名を正確に指定してください（例: "Data"）
-  // シート名が違う場合は getSheets()[0] のように最初のシートを取ることも可能
   const sheet = ss.getSheetByName("Data"); 
   if (!sheet) {
     throw new Error("指定されたシート名が存在しません。シート名を確認してください。");
   }
 
-  // シート全体のデータを取得（2次元配列）
   const rows = sheet.getDataRange().getValues();
-
-  // 1行目を「キー名（ヘッダ）」として扱う
   const headers = rows.shift();
 
   // 各行を JSON オブジェクトに変換
-  const result = rows.map(row => {
+  const dataArray = rows.map(row => {
     let obj = {};
     headers.forEach((header, i) => {
-      // 例: "address.city" → { address: { city: 値 } }
       setNestedValue(obj, header, row[i]);
     });
     return obj;
   });
 
-  // JSON に変換（インデント2スペースで整形）
+  // ★ ここで固定情報を追加したオブジェクトを作る
+  const result = {
+    Name: "Address",  // 固定
+    Version: "1.0",   // 固定
+    Data: dataArray   // シートから作った配列
+  };
+
+  // JSON に変換
   const json = JSON.stringify(result, null, 2);
 
-  // ▼ 保存先のフォルダを指定してください
-  // URL: https://drive.google.com/drive/folders/xxxxxxxxxxxxxxxx
-  // の「xxxxxxxxxxxxxxxx」がフォルダIDです
-  const folderId = "YOUR_FOLDER_ID"; // ←ここを差し替える
+  // 保存先フォルダ
+  const folderId = "YOUR_FOLDER_ID"; // ←置き換え
   const folder = DriveApp.getFolderById(folderId);
 
-  // ファイル名を指定
+  // ファイル名
   const fileName = "export.json";
 
-  // JSON をテキストファイルとして Google Drive に保存
+  // JSON をファイルに保存
   const blob = Utilities.newBlob(json, "application/json", fileName);
   folder.createFile(blob);
 
   Logger.log("JSON を書き出しました: " + fileName);
-}
-
-/**
- * ドット区切りのキーを解釈してネストしたオブジェクトや配列に値をセットする
- * 例:
- *   setNestedValue({}, "address.city", "Tokyo")
- *   → { address: { city: "Tokyo" } }
- * 
- *   setNestedValue({}, "skills.0", "C#")
- *   setNestedValue({ skills: ["C#"] }, "skills.1", "Unity")
- *   → { skills: ["C#", "Unity"] }
- */
-function setNestedValue(obj, key, value) {
-  if (!key) return;
-  const keys = key.split(".");
-  let current = obj;
-
-  keys.forEach((k, idx) => {
-    const isLast = idx === keys.length - 1;
-    const isArrayIndex = !isNaN(k); // "0", "1", ... のように数値なら配列とみなす
-
-    if (isLast) {
-      // 最後のキーに値を代入する
-      if (isArrayIndex) {
-        // 配列のインデックス
-        const index = parseInt(k, 10);
-        if (!Array.isArray(current)) {
-          // current がまだ配列でなければ配列にする
-          current = [];
-        }
-        current[index] = value;
-      } else {
-        // 通常のオブジェクトのキー
-        current[k] = value;
-      }
-    } else {
-      // 途中のキーならオブジェクト/配列を掘り下げる
-      const nextKey = keys[idx + 1];
-      const nextIsArray = !isNaN(nextKey);
-
-      if (isArrayIndex) {
-        // 今のキーが配列インデックスの場合
-        const index = parseInt(k, 10);
-        if (!Array.isArray(current)) {
-          current = [];
-        }
-        if (!current[index]) {
-          current[index] = nextIsArray ? [] : {};
-        }
-        current = current[index];
-      } else {
-        // オブジェクトのキー
-        if (!current[k]) {
-          current[k] = nextIsArray ? [] : {};
-        }
-        current = current[k];
-      }
-    }
-  });
 }

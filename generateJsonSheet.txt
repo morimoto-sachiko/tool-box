@@ -1,0 +1,54 @@
+function generateJsonSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const inputSheet = ss.getSheetByName("Input");
+  if (!inputSheet) throw new Error("Input シートがありません");
+
+  const rows = inputSheet.getDataRange().getValues();
+  const headers = rows.shift();
+
+  // 既存の Json シートを削除して作り直す
+  const old = ss.getSheetByName("Json");
+  if (old) ss.deleteSheet(old);
+  const jsonSheet = ss.insertSheet("Json");
+
+  // 出力ヘッダ
+  const outputHeaders = TEMPLATE_MAPPING.map(map => map.output);
+
+  // まずヘッダを書き込む
+  jsonSheet.getRange(1, 1, 1, outputHeaders.length).setValues([outputHeaders]);
+
+  // === リンク解除処理 ===
+  const headerRange = jsonSheet.getRange(1, 1, 1, outputHeaders.length);
+  const headerValues = headerRange.getValues();
+  headerRange.clearFormat();             // 書式もリセット
+  headerRange.setValues(headerValues);   // 値を「プレーンテキスト」として再設定
+
+  // データ行を変換
+  const outputRows = rows.map(row => {
+    const inputMap = {};
+    headers.forEach((h, i) => inputMap[h] = row[i]);
+
+    return TEMPLATE_MAPPING.map(map => {
+      if (map.fixed !== undefined) {
+        return map.fixed;
+      } else {
+        return inputMap[map.input] || "";
+      }
+    });
+  });
+
+  // データ行を書き込み
+  jsonSheet.getRange(2, 1, outputRows.length, outputHeaders.length).setValues(outputRows);
+
+  Logger.log("Json シートを生成しました（リンク解除済み）");
+}
+
+const TEMPLATE_MAPPING = [
+  { input: "name",   output: "name" },
+  { input: "age",    output: "age" },
+  { input: "city",   output: "address.city" },
+  { input: "skill1", output: "skills.0" },
+  { input: "skill2", output: "skills.1" },
+  { input: null,     output: "status.hp", fixed: 100 },
+  { input: null,     output: "status.mp", fixed: 50 }
+];
