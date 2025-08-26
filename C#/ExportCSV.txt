@@ -1,0 +1,9 @@
+Sub ExportCSV()
+    Dim ws As Worksheet
+    Dim filePath As String
+    Set ws = ThisWorkbook.Sheets("Data")
+    filePath = ThisWorkbook.Path & "\export.csv"
+    ws.Copy
+    ActiveWorkbook.SaveAs Filename:=filePath, FileFormat:=xlCSVUTF8
+    ActiveWorkbook.Close SaveChanges:=False
+End Sub
