@@ -1,0 +1,20 @@
+/**
+ * フォルダIDとファイル名を指定して、対象ファイルを削除する
+ * （同名が複数あればすべて削除）
+ * 
+ * @param {string} folderId - 対象フォルダのID
+ * @param {string} targetName - 削除したいファイル名
+ */
+function deleteFilesByName(folderId, targetName) {
+  const folder = DriveApp.getFolderById(folderId);
+  const files = folder.getFilesByName(targetName);
+
+  let count = 0;
+  while (files.hasNext()) {
+    const file = files.next();
+    file.setTrashed(true); // ゴミ箱に移動
+    count++;
+  }
+
+  Logger.log(`${count} 件のファイルを削除しました: ${targetName}`);
+}

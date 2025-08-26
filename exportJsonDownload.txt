@@ -1,0 +1,19 @@
+function exportJsonDownload() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Data");
+  const values = sheet.getDataRange().getValues();
+
+  const headers = values.shift();
+  const data = values.map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+
+  const json = JSON.stringify(data, null, 2);
+
+  // Webアプリとして返す
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}

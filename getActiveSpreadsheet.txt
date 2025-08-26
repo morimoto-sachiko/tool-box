@@ -1,0 +1,10 @@
+// GASライブラリ化して共有
+//共通処理を書いたGASプロジェクトを作る。
+//ファイル > プロジェクトのプロパティ > スクリプトID をコピー。
+//使いたい各スプレッドシートのスクリプトエディタを開き、
+//リソース > ライブラリ からスクリプトIDを追加。
+//呼び出し側からは次のように使える：
+function run() {
+  const spreadsheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
+  MyCommonLib.exportJsonToFile(spreadsheetId);
+}
