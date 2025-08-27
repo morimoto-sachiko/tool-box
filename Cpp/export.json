@@ -1,0 +1,26 @@
+{
+  "Name": "Address",
+  "Version": "1.0",
+  "Taro": {
+    "age": 20,
+    "address": {
+      "city": "Tokyo",
+      "zip": "100-0001"
+    },
+    "skills": [
+      "C#",
+      "Unity"
+    ]
+  },
+  "Hanako": {
+    "age": 25,
+    "address": {
+      "city": "Osaka",
+      "zip": "530-0001"
+    },
+    "skills": [
+      "Python",
+      "GAS"
+    ]
+  }
+}
