@@ -1,0 +1,39 @@
+Option Explicit
+
+' 任意の範囲をCSVとしてUTF-8で出力する
+Sub ExportRangeToCSV_UTF8()
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim csvFile As String
+    Dim fso As Object, stream As Object
+    Dim r As Long, c As Long
+    Dim lineText As String
+    
+    '=== 設定 ===
+    Set ws = ThisWorkbook.Sheets("Sheet1")                ' 対象シート
+    Set rng = ws.Range("A1:C10")                          ' 出力したい範囲
+    csvFile = Environ("USERPROFILE") & "\Documents\RangeExport.csv"
+    
+    '=== ADODB.Streamを使ってUTF-8出力 ===
+    Set fso = CreateObject("ADODB.Stream")
+    With fso
+        .Type = 2                 ' 文字データ
+        .Charset = "UTF-8"        ' UTF-8で書き込み
+        .Open
+        
+        ' 1行ずつ範囲を処理
+        For r = 1 To rng.Rows.Count
+            lineText = ""
+            For c = 1 To rng.Columns.Count
+                lineText = lineText & """" & rng.Cells(r, c).Text & """"
+                If c < rng.Columns.Count Then lineText = lineText & ","
+            Next c
+            .WriteText lineText, 1 ' 1 = 改行付き
+        Next r
+        
+        .SaveToFile csvFile, 2    ' 2 = 上書き保存
+        .Close
+    End With
+    
+    MsgBox "範囲 " & rng.Address & " をUTF-8 CSVに出力しました。" & vbCrLf & csvFile, vbInformation
+End Sub
