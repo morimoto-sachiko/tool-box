@@ -1,0 +1,45 @@
+Option Explicit
+
+' 指定したテーブルをCSVファイルとしてエクスポートする
+Sub ExportTableToCSV()
+    Dim ws As Worksheet
+    Dim lo As ListObject
+    Dim rng As Range
+    Dim csvFile As String
+    Dim fNum As Integer
+    Dim r As Long, c As Long
+    Dim lineText As String
+    
+    '=== 設定部分 ===
+    Set ws = ThisWorkbook.Sheets("Sheet1")   ' テーブルがあるシート名
+    Set lo = ws.ListObjects("Table1")        ' エクスポート対象のテーブル名
+    csvFile = Environ("USERPROFILE") & "\Documents\TableExport.csv" ' 出力先
+    
+    '=== 出力処理 ===
+    Set rng = lo.DataBodyRange
+    
+    fNum = FreeFile
+    Open csvFile For Output As #fNum
+    
+    ' ヘッダ行の出力
+    lineText = ""
+    For c = 1 To lo.HeaderRowRange.Columns.Count
+        lineText = lineText & """" & lo.HeaderRowRange.Cells(1, c).Value & """"
+        If c < lo.HeaderRowRange.Columns.Count Then lineText = lineText & ","
+    Next c
+    Print #fNum, lineText
+    
+    ' データ本体の出力
+    For r = 1 To rng.Rows.Count
+        lineText = ""
+        For c = 1 To rng.Columns.Count
+            lineText = lineText & """" & rng.Cells(r, c).Value & """"
+            If c < rng.Columns.Count Then lineText = lineText & ","
+        Next c
+        Print #fNum, lineText
+    Next r
+    
+    Close #fNum
+    
+    MsgBox "テーブル '" & lo.Name & "' をCSVに出力しました。" & vbCrLf & csvFile, vbInformation
+End Sub

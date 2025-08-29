@@ -103,14 +103,13 @@ void SetNestedValue(json& j, const std::string& key, const json& value)
     std::string token;
     json* current = &j;
 
-    // キーを分解 (例: "address.city.zip" → ["address","city","zip"])
+    // キーを分解
     std::vector<std::string> keys;
     while (std::getline(ss, token, '.'))
     {
         keys.push_back(token);
     }
 
-    // ネストをたどりながら代入
     for (size_t i = 0; i < keys.size(); i++)
     {
         const std::string& k = keys[i];
@@ -126,11 +125,13 @@ void SetNestedValue(json& j, const std::string& key, const json& value)
 
         if (isLast)
         {
-            // 最下層に到達 → 値を代入
+            // ★最下層 → 値を代入
             if (isArrayIndex)
             {
                 if (!current->is_array()) *current = json::array();
-                if (current->size() <= index) current->resize(index + 1);
+                while (current->size() <= index) {
+                    current->push_back(nullptr); // 配列を拡張
+                }
                 (*current)[index] = value;
             }
             else
@@ -140,7 +141,7 @@ void SetNestedValue(json& j, const std::string& key, const json& value)
         }
         else
         {
-            // 途中ノードの処理
+            // ★中間ノード
             const std::string& nextKey = keys[i + 1];
             bool nextIsIndex = false;
             try { std::stoi(nextKey); nextIsIndex = true; } catch (...) {}
@@ -148,9 +149,10 @@ void SetNestedValue(json& j, const std::string& key, const json& value)
             if (isArrayIndex)
             {
                 if (!current->is_array()) *current = json::array();
-                if (current->size() <= index) current->resize(index + 1);
+                while (current->size() <= index) {
+                    current->push_back(nullptr);
+                }
 
-                // 未初期化なら次の構造を作る
                 if ((*current)[index].is_null())
                     (*current)[index] = nextIsIndex ? json::array() : json::object();
 
@@ -166,6 +168,7 @@ void SetNestedValue(json& j, const std::string& key, const json& value)
         }
     }
 }
+
 
 /// ===========================================================
 /// メイン処理
