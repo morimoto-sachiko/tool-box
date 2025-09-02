@@ -1,0 +1,23 @@
+#include iostream
+#include filesystem   C++17～
+
+namespace fs = stdfilesystem;
+
+int main() {
+    try {
+         現在のカレントディレクトリを取得
+        fspath current = fscurrent_path();
+        stdcout  Current path   current  stdendl;
+
+         相対パスから絶対パスを取得
+        fspath relativeFile = datatest.txt;
+        fspath absoluteFile = fsabsolute(relativeFile);
+
+        stdcout  Relative    relativeFile  stdendl;
+        stdcout  Absolute    absoluteFile  stdendl;
+    }
+    catch (const stdexception& e) {
+        stdcerr  Error   e.what()  'n';
+    }
+    return 0;
+}

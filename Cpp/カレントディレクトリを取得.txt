@@ -1,0 +1,24 @@
+#include <iostream>
+#include <windows.h>
+
+int main() {
+    char buffer[MAX_PATH];
+
+    // カレントディレクトリを取得
+    DWORD len = GetCurrentDirectoryA(MAX_PATH, buffer);
+    if (len == 0) {
+        std::cerr << "GetCurrentDirectory failed." << std::endl;
+        return 1;
+    }
+    std::cout << "Current path: " << buffer << std::endl;
+
+    // 相対パスを絶対パスに変換
+    char fullPath[MAX_PATH];
+    if (GetFullPathNameA("data\\test.txt", MAX_PATH, fullPath, nullptr) == 0) {
+        std::cerr << "GetFullPathName failed." << std::endl;
+        return 1;
+    }
+    std::cout << "Absolute path: " << fullPath << std::endl;
+
+    return 0;
+}
